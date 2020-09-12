@@ -1,0 +1,28 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  line-height: 1.2;
+}
+
+html, body, .app {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+button {
+  outline: none;
+
+  &:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.5s;
+}
+
+.fade-enter, .fade-leave-to {
+  opacity: 0;
+}
