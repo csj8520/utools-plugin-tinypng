@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tinypng</title>
+    <!-- <link rel="stylesheet" href="./css/iconfont.css" /> -->
+    <link rel="stylesheet" href="./css/style.css" />
+  </head>
+  <body>
+    <div class="app" @dragenter="draged = true" @dragover.prevent="draged = true" @dragleave="draged = false" @drop.prevent="handleDrop">
+      <ul class="list">
+        <li class="template list__item" :style="{['--width']: `${it.progress*100}%`}" v-for="(it,index) in list" :key="index">
+          <div class="list__item__img"><img :src="it.path" /></div>
+          <div class="list__item__name">{{it.name}}</div>
+          <div class="list__item__size">{{it.size ? `${(it.size/1024).toFixed(2)}KB` : '-'}}</div>
+          <div class="list__item__size-compress">
+            {{it.compressSize ? `${(it.compressSize/1024).toFixed(2)}KB` : '-'}}
+          </div>
+          <div class="list__item__compress-ratio">{{it.ratio ? `-${((1-it.ratio)*100).toFixed(2)}%` : '-'}}</div>
+          <button :disabled="!it.success" class="list__item__copy iconfont icon-copy" title="复制图片" @click="handleCopys([it])"></button>
+          <button :disabled="!it.success" class="list__item__replace iconfont icon-icon_common_replace" title="覆盖原图" @click="handleReplaces([it])"></button>
+          <p class="list__item__tag">
+            <span v-for="(it,index) in it.status" :key="index">{{it}}</span>
+          </p>
+          <div class="list__item__error" v-if="it.error">
+            <button class="iconfont icon-shuaxin" @click="handleRetry(it)"></button>
+            <p>{{it.errorInfo}}</p>
+          </div>
+        </li>
+        <transition name="fade">
+          <div class="list__drag" v-if="!list.length || draged" :class="{'list__drag--drag': draged}">
+            <span class="iconfont icon-shangchuan"></span>
+            <p v-if="draged">松手压缩此图片</p>
+            <p v-else>请将图片拖放到此处</p>
+          </div>
+        </transition>
+      </ul>
+      <div class="op" :style="{['--width']: `${op.complate}%`}">
+        <p>完成 {{op.complate}}%</p>
+        <p>失败 {{op.error}}</p>
+        <p>总计 {{op.total}} 压缩后 {{op.surplus}}</p>
+        <p>共减少<span>{{op.reduce}}</span><span>{{op.ratio}}%</span></p>
+        <button @click="handleReplaces(list)">覆盖原图</button>
+        <button @click="handleCopys(list)">复制所有</button>
+      </div>
+    </div>
+  </body>
+  <script src="./js/vue.min.js"></script>
+</html>

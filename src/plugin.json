@@ -1,0 +1,25 @@
+{
+  "pluginName": "tinypng压缩图片",
+  "description": "使用tinypng压缩图片",
+  "author": "csj8520",
+  "homepage": "https://github.com/csj8520/utools-plugin-tinypng.git",
+  "main": "index.html",
+  "version": "0.0.4",
+  "logo": "logo.png",
+  "preload": "js/preload.js",
+  "features": [
+    {
+      "code": "tinypng",
+      "explain": "压缩图片",
+      "cmds": [
+        "tinypng",
+        "压缩图片",
+        {
+          "type": "files",
+          "label": "压缩图片",
+          "match": "/\\.(png|jpeg|jpg)$/i"
+        }
+      ]
+    }
+  ]
+}
