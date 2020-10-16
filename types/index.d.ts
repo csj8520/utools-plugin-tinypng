@@ -40,10 +40,6 @@ namespace Response {
   }
 }
 
-namespace My {
-  export const utils = Utils;
-}
-
 interface Window {
   tempPath: string;
   utils: typeof import('@/preload/utils');
