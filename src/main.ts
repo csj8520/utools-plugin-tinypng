@@ -15,5 +15,6 @@ window.addEventListener('load', () => {
   Vue.filter('fixed', (n: number, f: number) => Number.prototype.toFixed.call(n, f));
   Vue.prototype.$message = Message;
   Vue.prototype.$confirm = MessageBox.confirm;
+  Vue.prototype.$prompt = MessageBox.prompt;
   window.APP = new App().$mount('#app');
 });

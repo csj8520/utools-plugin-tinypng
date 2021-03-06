@@ -12,16 +12,12 @@ namespace Tinypng {
     input: Response.Input;
     output: Response.Output;
   }
-  export interface Fail {
-    type: 'upload' | 'download';
-    url?: string;
-    error: Error;
-  }
+
   export interface List extends FIleItem {
-    temp?: string;
-    progress?: number;
-    surplus?: number;
-    error?: Tinypng.Fail;
+    progress: number;
+    surplus: number;
+    error: string;
+    tc: import('@/preload/tinypng').TinypngCompress;
   }
 }
 
@@ -45,6 +41,7 @@ interface Window {
   utils: typeof import('@/preload/utils');
   tinypng: typeof import('@/preload/tinypng');
   fs: typeof import('fs');
+  glob: typeof import('glob');
   path: typeof import('path');
   APP: import('vue').default;
 }

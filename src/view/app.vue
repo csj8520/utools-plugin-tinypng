@@ -1,23 +1,23 @@
 <template>
-  <div class="app" @dragenter="draged = true" @dragover.prevent="draged = true" @dragleave="draged = false" @drop.prevent="handleDrop">
+  <div @dragenter="draged = true" @dragleave="draged = false" @dragover.prevent="draged = true" @drop.prevent="handleDrop" class="app">
     <ul>
       <block-item
-        v-for="(it, index) in list"
+        :error="it.error"
         :key="index"
         :name="it.name"
         :path="it.path"
         :progress="it.progress"
-        :status="it.status"
         :size="it.size"
+        :status="it.status"
         :surplus="it.surplus"
-        :error="it.error"
-        @retry="handleCompressOne(it, index)"
         @copy="handleCopys([it])"
         @replace="handleReplaces([it])"
+        @retry="handleCompressOne(index)"
+        v-for="(it, index) in list"
       />
     </ul>
-    <div class="app__info" :style="{ '--width': `${info.complate}%` }">
-      <p>完成 {{ info.complate | fixed(2) }}%</p>
+    <div :style="{ '--width': `${info.progress}%` }" class="app__info">
+      <p>进度 {{ info.success }}/{{ list.length }}</p>
       <p>失败 {{ info.error }}</p>
       <p>总计 {{ info.total | bytes }} 压缩后 {{ info.surplus | bytes }}</p>
       <p>
@@ -25,11 +25,11 @@
         <span>{{ (info.total - info.surplus) | bytes }}</span>
         <span>-{{ (((info.total - info.surplus) / info.total || 0) * 100) | fixed(2) }}%</span>
       </p>
-      <el-button type="primary" size="mini" @click="handleReplaces(list)">覆盖原图</el-button>
-      <el-button type="primary" size="mini" @click="handleCopys(list)">复制所有</el-button>
+      <el-button @click="handleReplaces(list)" size="mini" type="primary">覆盖原图</el-button>
+      <el-button @click="handleCopyAll()" size="mini" type="primary">复制所有</el-button>
     </div>
     <transition name="fade">
-      <div class="app__drag" v-if="!list.length || draged" :draged="draged">
+      <div :draged="draged" class="app__drag" v-if="!list.length || draged">
         <i class="iconfont icon-shangchuan"></i>
         <p v-if="draged">松手压缩此图片</p>
         <p v-else>请将图片拖放到此处</p>
@@ -70,11 +70,7 @@
     }
 
     > p {
-      padding: 0 6px;
-
-      &:nth-child(3) {
-        padding-left: 20px;
-      }
+      padding: 0 8px;
 
       &:last-of-type {
         flex: 1;
@@ -129,16 +125,15 @@ import { Vue, Component } from 'vue-property-decorator';
 
 import BlockItem from './block-item.vue';
 
-const { path, fs, utils, tinypng } = window;
-const { bytesToSize, Queue } = utils;
-const { compress, download } = tinypng;
+const { path, fs, utils, tinypng, glob } = window;
+const { Queue } = utils;
+const { TinypngCompress } = tinypng;
 
 @Component({ components: { BlockItem } })
 export default class App extends Vue {
-  private num: number = 0;
+  private draged = false;
 
   private list: Tinypng.List[] = [];
-  private draged = false;
 
   private queue!: InstanceType<typeof Queue>;
 
@@ -149,13 +144,14 @@ export default class App extends Vue {
     const success = this.list.filter(it => it.progress === 1);
     const error = this.list.filter(it => it.error);
     const total = success.reduce((a, b) => a + b.size, 0);
-    const surplus = success.reduce((a, b) => a + (b.surplus || 0), 0);
+    const surplus = success.reduce((a, b) => a + b.surplus, 0);
     return {
-      complate: (success.length / sum) * 100 || 0,
+      progress: (success.length / sum) * 100 || 0,
       success: success.length,
       error: error.length,
       total,
-      surplus
+      surplus,
+      complete: sum === success.length + error.length
     };
   }
 
@@ -164,45 +160,107 @@ export default class App extends Vue {
   }
 
   public async handleCompress(files: Tinypng.FIleItem[]) {
+    if (!this.info.complete) {
+      if ((await this.$confirm('还有任务未完成确认覆盖吗?').catch(t => t)) !== 'confirm') return;
+    }
+
     if (!/utools.tinypng$/.test(window.tempPath)) return this.$message.error('图片缓存路径异常！');
-    const temps = fs.readdirSync(window.tempPath);
-    temps.filter(it => this.imageReg.test(it)).forEach(it => fs.unlinkSync(path.join(window.tempPath, it)));
+
+    // 移除上一次的缓存
+    fs.readdirSync(window.tempPath)
+      .map(it => path.join(window.tempPath, it))
+      .filter(it => it.includes('utools.tinypng'))
+      .forEach(it => (fs.statSync(it).isFile() ? fs.unlinkSync(it) : fs.rmdirSync(it, { recursive: true })));
 
     console.log(files);
-    this.list = files.filter(it => this.imageReg.test(it.name));
 
-    for (const [index, file] of Object.entries(this.list)) {
-      await this.queue.push(this.handleCompressOne(file, Number(index)));
+    // 销毁旧的实例
+    this.list.forEach(it => it.tc.destroy());
+    this.list = [];
+
+    // 递归图片文件
+    let list: Tinypng.FIleItem[] = [];
+    files.forEach(it => {
+      if (fs.statSync(it.path).isDirectory()) {
+        glob
+          .sync(path.join(it.path, '**/**.{png,jpeg,jpg}'))
+          .map(item => path.normalize(item))
+          .forEach(item =>
+            list.push({
+              path: item,
+              name: path.parse(it.path).name + item.replace(it.path, ''),
+              size: fs.statSync(item).size
+            })
+          );
+      } else if (this.imageReg.test(it.name)) {
+        list.push({ name: it.name, path: it.path, size: it.size });
+      }
+    });
+    if (list.length > 20) {
+      const data = await this.$confirm('当前文件超过20个可能会压缩失败', { confirmButtonText: '继续' }).catch(t => t);
+      if (data !== 'confirm') return;
+    }
+    // 实例
+    this.list = list.map(it => ({ ...it, progress: 0, error: '', surplus: 0, tc: new TinypngCompress({ filePath: it.path, downloadPath: path.join(window.tempPath, it.name) }) }));
+    // 队列
+    for (let idx = 0; idx < this.list.length; idx++) {
+      await this.queue.push(this.handleCompressOne(idx));
     }
     await this.queue.finish();
   }
 
-  private async handleCompressOne(file: Tinypng.FIleItem, index: number) {
-    const temp = path.join(window.tempPath, file.name);
-    this.$set(this.list, index, { ...this.list[index], error: undefined, temp });
+  private handleCompressOne(idx: number): Promise<any> {
+    return new Promise<void>(res => {
+      this.list[idx].tc.removeAllListeners();
+      this.list[idx].tc.on('progress:upload', p => {
+        console.log('progress:upload', p);
+        this.$set(this.list, idx, { ...this.list[idx], progress: p * 0.33 });
+      });
+      this.list[idx].tc.on('progress:compress', p => {
+        this.$set(this.list, idx, { ...this.list[idx], progress: p * 0.33 + 0.33 });
+        console.log('progress:compress', p);
+      });
+      this.list[idx].tc.on('progress:download', p => {
+        this.$set(this.list, idx, { ...this.list[idx], progress: p * 0.33 + 0.66 });
+        console.log('progress:download', p);
+      });
 
-    const res = await compress({ img: file.path, path: temp }, data => this.$set(this.list, index, { ...this.list[index], ...data })).catch(
-      error => (this.$set(this.list, index, { ...this.list[index], error }), null)
-    );
-    if (!res) return;
+      this.list[idx].tc.on('success:upload', p => {
+        this.$set(this.list, idx, { ...this.list[idx], progress: 0.66, surplus: p.output.size });
+        console.log('success:upload', p, this.list[idx].tc);
+        this.list[idx].tc.download();
+      });
+      this.list[idx].tc.on('success:download', () => {
+        this.$set(this.list, idx, { ...this.list[idx], progress: 1 });
+        console.log('success:download');
+        res();
+      });
 
-    this.$set(this.list, index, { ...this.list[index], surplus: res.output.size });
+      this.list[idx].tc.on('error:upload', err => {
+        console.log('error:upload', err);
+        this.$set(this.list, idx, { ...this.list[idx], progress: 0, error: `Upload Error: ${err.message}` });
+      });
+      this.list[idx].tc.on('error:download', err => {
+        console.log('error:download', err);
+        this.$set(this.list, idx, { ...this.list[idx], error: `Download Error: ${err.message}` });
+      });
+
+      this.$set(this.list, idx, { ...this.list[idx], error: '' });
+      if (this.list[idx].progress >= 0.66) {
+        this.list[idx].tc.download();
+      } else {
+        this.list[idx].tc.upload();
+      }
+    });
   }
-
-  // private handleRetry(file: Tinypng.List, index: number) {
-  //   if (file?.error?.type === "download" && file?.error?.url && file?.temp) {
-  //     download({ url: file?.error.url, path: file.temp });
-  //   } else {
-  //     this.handleCompressOne(file, index);
-  //   }
-  // }
 
   private async handleReplaces(list: Tinypng.List[]) {
     try {
-      const result = await this.$confirm('您确定要覆盖此文件吗？此操作不可还原！', { title: '覆盖确认' }).catch(() => void 0);
-      if (!result) return;
-      for (const { path, temp } of list.filter(it => it.progress === 1 && it.path && it.temp)) {
-        await fs.createReadStream(temp as string).pipe(fs.createWriteStream(path));
+      if (!this.info.complete) return this.$message('请等待全部压缩完成');
+      const result = await this.$confirm('您确定要覆盖此文件吗？此操作不可还原！').catch(t => t);
+      if (result !== 'confirm') return;
+      for (const { tc } of list) {
+        fs.createReadStream(tc.downloadPath).pipe(fs.createWriteStream(tc.filePath));
       }
       this.$message.success('覆盖成功！');
     } catch (error) {
@@ -211,16 +269,17 @@ export default class App extends Vue {
   }
 
   private handleCopys(list: Tinypng.List[]) {
-    const files = list.filter(it => it.progress === 1 && it.temp);
-    const paths = files.map(it => it.temp as string);
-    const ok = utools.copyFile(paths);
-    ok ? this.$message.success('复制成功！') : this.$message.error('复制失败！');
+    utools.copyFile(list.map(it => it.tc.downloadPath)) ? this.$message.success('复制成功！') : this.$message.error('复制失败！');
+  }
+
+  private handleCopyAll() {
+    if (!this.info.complete) return this.$message('请等待全部压缩完成');
+    utools.copyFile(fs.readdirSync(window.tempPath).map(it => path.join(window.tempPath, it))) ? this.$message.success('复制成功！') : this.$message.error('复制失败！');
   }
 
   private handleDrop(e: DragEvent) {
     this.draged = false;
-    const files = (e.dataTransfer?.files || []) as any[];
-    this.handleCompress(Array.from(files).map(it => ({ name: it.name, path: it.path as string, size: it.size })));
+    this.handleCompress(Array.from(e.dataTransfer?.files || []));
   }
 }
 </script>

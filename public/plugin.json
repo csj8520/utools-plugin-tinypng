@@ -4,7 +4,7 @@
   "author": "csj8520",
   "homepage": "https://github.com/csj8520/utools-plugin-tinypng.git",
   "main": "index.html",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "logo": "logo.png",
   "preload": "preload.js",
   "features": [
@@ -18,6 +18,11 @@
           "type": "files",
           "label": "压缩图片",
           "match": "/\\.(png|jpeg|jpg)$/i"
+        },
+        {
+          "type": "files",
+          "label": "压缩此文件夹下所有图片",
+          "fileType": "directory"
         }
       ]
     }

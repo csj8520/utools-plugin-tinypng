@@ -1,6 +1,8 @@
 <template>
-  <li class="item" :style="{ '--width': `${progress * 100}%` }">
-    <div class="item__img"><img :src="path" /></div>
+  <li :style="{ '--width': `${progress * 100}%` }" class="item">
+    <div class="item__img">
+      <img :src="path" />
+    </div>
     <div class="item__name">{{ name }}</div>
     <div class="item__size">{{ size | bytes }}</div>
     <div class="item__size-compress">
@@ -8,15 +10,17 @@
       <template v-else>-</template>
     </div>
     <div class="item__compress-ratio">{{ surplus ? `-${(((size - surplus) / size) * 100).toFixed(2)}%` : '-' }}</div>
-    <button :disabled="progress !== 1" class="item__copy iconfont icon-copy" title="复制图片" @click="$emit('copy')"></button>
-    <button :disabled="progress !== 1" class="item__replace iconfont icon-icon_common_replace" title="覆盖原图" @click="$emit('replace')"></button>
+    <button :disabled="progress !== 1" @click="$emit('copy')" class="item__copy iconfont icon-copy" title="复制图片"></button>
+    <button :disabled="progress !== 1" @click="$emit('replace')" class="item__replace iconfont icon-icon_common_replace" title="覆盖原图"></button>
     <p class="item__tag">
-      <span v-for="(it, index) in status" :key="index">{{ it }}</span>
+      <span :key="index" v-for="(it, index) in status">{{ it }}</span>
     </p>
-    <div class="item__error" v-if="error">
-      <i class="iconfont icon-shuaxin" @click="$emit('retry')"></i>
-      <p>{{ error.type }}: {{ error.error }}</p>
-    </div>
+    <transition name="fade">
+      <div class="item__error" v-if="error">
+        <i @click="$emit('retry')" class="iconfont icon-shuaxin"></i>
+        <p>{{ error }}</p>
+      </div>
+    </transition>
   </li>
 </template>
 
@@ -115,11 +119,12 @@
     z-index: 2;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.7);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    color: #c0c4cc;
 
     i {
       cursor: pointer;
@@ -149,10 +154,18 @@ export default class Item extends Vue {
   @Prop({ type: Number, default: 0 })
   private progress!: number;
 
-  @Prop({ type: Array, default: () => [] })
-  private status!: string[];
+  @Prop({ type: String, default: '' })
+  private error!: string;
 
-  @Prop({ type: Object })
-  private error!: Tinypng.Fail;
+  private dice = [
+    [1, ['上传完成', '压缩完成', '下载图片完成']],
+    [0.66, ['上传完成', '压缩完成', '下载图片中']],
+    [0.33, ['上传完成', '压缩中']],
+    [0, ['上传中']]
+  ];
+
+  private get status() {
+    return this.dice.find(([p]) => this.progress >= p)?.[1] ?? [];
+  }
 }
 </script>

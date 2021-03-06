@@ -1,14 +1,55 @@
 import fs from 'fs';
+import path from 'path';
+import http from 'http';
 import https from 'https';
+import Events from 'events';
 import { random } from './utils';
+import ProxyAgent from 'proxy-agent';
+import { Agent } from 'node:http';
 
-export function upload(path: string, cb = (op: Tinypng.Progress): void => {}): Promise<Tinypng.Response> {
-  return new Promise((resolove, reject) => {
+export interface TinypngCompress {
+  on(event: 'progress:upload', listener: (v: number) => void): this;
+  on(event: 'progress:compress', listener: (v: number) => void): this;
+  on(event: 'progress:download', listener: (v: number) => void): this;
+  on(event: 'success:upload', listener: (v: Tinypng.Response) => void): this;
+  on(event: 'success:download', listener: () => void): this;
+  on(event: 'error:upload', listener: (v: Error) => void): this;
+  on(event: 'error:download', listener: (v: Error) => void): this;
+
+  emit(event: 'progress:upload', v: number): boolean;
+  emit(event: 'progress:compress', v: number): boolean;
+  emit(event: 'progress:download', v: number): boolean;
+  emit(event: 'success:upload', v: Tinypng.Response): boolean;
+  emit(event: 'success:download'): boolean;
+  emit(event: 'error:upload', v: Error): boolean;
+  emit(event: 'error:download', v: Error): boolean;
+}
+
+export class TinypngCompress extends Events {
+  public filePath!: string;
+  public downloadPath!: string;
+  public response?: Tinypng.Response;
+  private proxy?: Agent;
+  private req?: http.ClientRequest;
+  private res?: http.IncomingMessage;
+
+  constructor({ filePath, downloadPath }: { filePath: string; downloadPath: string }) {
+    super();
+    this.filePath = filePath;
+    this.downloadPath = downloadPath;
+    const proxy = utools.db.get('proxy');
+    if (proxy) {
+      this.proxy = new ProxyAgent(proxy.data);
+    }
+  }
+
+  public upload() {
     let send = 0;
     const req = https.request(
       {
+        agent: this.proxy,
         method: 'POST',
-        hostname: random(['tinypng.com', 'tinyjpg.com'], 1)[0],
+        hostname: random(['tinypng.com', 'tinyjpg.com']),
         path: '/web/shrink',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -19,93 +60,80 @@ export function upload(path: string, cb = (op: Tinypng.Progress): void => {}): P
         }
       },
       res => {
+        this.res = res;
         const buffs: any[] = [];
-        res.on('data', buf => buffs.push(buf));
+        res.on('data', (buf: any) => buffs.push(buf));
         res.on('end', () => {
           const data = JSON.parse(Buffer.concat(buffs).toString());
           const { statusCode = 0 } = res;
-          if ((statusCode >= 200 && statusCode < 400) || data.error) {
-            resolove(data);
-            cb({ progress: 1, type: 'compress' });
+          if (statusCode >= 200 && statusCode < 400 && data.output && data.input) {
+            this.response = data;
+            this.emit('progress:compress', 1);
+            this.emit('success:upload', this.response!);
           } else {
-            reject(new Error(data));
-            cb({ progress: 0, type: 'compress' });
+            this.emit('progress:compress', 0);
+            this.emit('error:upload', new Error(data.message || data.error || '...'));
           }
         });
-        res.on('error', reject);
+        res.on('error', err => this.emit('error:upload', err));
       }
     );
-    const fileInfo = fs.statSync(path);
+    this.req = req;
+    const fileInfo = fs.statSync(this.filePath);
 
-    req.on('drain', () => cb({ progress: send / fileInfo.size, type: 'upload' }));
-    req.on('finish', () => (cb({ progress: 1, type: 'upload' }), cb({ progress: 0, type: 'compress' })));
-    req.on('error', reject);
+    req.on('drain', () => this.emit('progress:upload', send / fileInfo.size));
+    req.on('finish', () => (this.emit('progress:upload', 1), this.emit('progress:compress', 0)));
+    req.on('error', err => this.emit('error:upload', err));
 
-    const rs = fs.createReadStream(path);
+    const rs = fs.createReadStream(this.filePath);
     rs.on('data', chunk => (send += chunk.length));
     rs.pipe(req, { end: false });
     rs.on('end', () => req.end());
-    cb({ progress: 0, type: 'upload' });
-  });
-}
+    this.emit('progress:upload', 0);
+  }
 
-export function download({ url, path }: { url: string; path: string }, cb = (op: Tinypng.Progress): void => {}) {
-  return new Promise((resolove, reject) => {
-    cb({ progress: 0, type: 'download' });
-    const req = https.request(url, res => {
+  public download() {
+    if (!this.response?.output?.url) return this.emit('error:download', new Error("Can't find Download Url"));
+
+    this.emit('progress:download', 0);
+
+    const req = https.request(this.response?.output.url, { agent: this.proxy }, res => {
+      this.res = res;
       const size = Number(res.headers['content-length']);
       let buffs = '';
       res.setEncoding('binary');
-      res.on('data', buf => {
+      res.on('data', (buf: string) => {
         buffs += buf;
-        cb({ progress: buffs.length / size, type: 'download' });
+        this.emit('progress:download', buffs.length / size);
       });
       res.on('end', () => {
-        const { statusCode = 0 } = res;
-        if (statusCode >= 200 && statusCode < 400) {
-          fs.writeFile(path, buffs, 'binary', err => (err ? reject(err) : resolove()));
+        const { statusCode = 0, aborted } = res;
+        if (statusCode >= 200 && statusCode < 400 && !aborted) {
+          const paths = path.parse(this.downloadPath).dir.split(path.sep);
+          paths.forEach((it, idx) => {
+            const p = paths.slice(0, idx + 1).join(path.sep);
+            fs.existsSync(p) || fs.mkdirSync(p);
+          });
+          fs.writeFile(this.downloadPath, buffs, 'binary', err => (err ? this.emit('error:download', err) : this.emit('success:download')));
         } else {
-          cb({ progress: 0, type: 'download' });
-          reject(new Error(buffs));
+          this.emit('progress:download', 0);
+          let data: any = {};
+          try {
+            data = JSON.parse(buffs);
+          } catch (e) {}
+          this.emit('error:download', new Error(data.message || data.error || '...'));
         }
       });
-      res.on('error', reject);
+      res.on('error', err => this.emit('error:download', err));
     });
-    req.on('error', reject);
+    this.req = req;
+    req.on('error', err => this.emit('error:download', err));
     req.end();
-  });
-}
-
-// 'upload' | 'compress' | 'download';
-
-function calcProgress({ type, progress }: Tinypng.Progress) {
-  let p = 0;
-  if (type === 'upload') {
-    p = progress * 0.33;
-  } else if (type === 'compress') {
-    p = progress * 0.33 + 0.33;
-  } else {
-    p = progress * 0.34 + 0.66;
   }
 
-  const status = p < 0.33 ? ['上传中'] : p < 0.66 ? ['上传完成', '压缩中'] : p < 1 ? ['上传完成', '压缩完成', '下载图片中'] : ['上传完成', '压缩完成', '下载图片完成'];
-
-  console.log('status: ', ...status);
-  console.log(p);
-  const result = {
-    progress: p,
-    status
-  };
-  return result;
-}
-
-export async function compress({ img, path }: { img: string; path: string }, cb = (op: { progress: number; status: string[] }): void => {}): Promise<Tinypng.Response> {
-  return new Promise(async (reslove, reject) => {
-    const up = await upload(img, p => cb(calcProgress(p))).catch(error => (cb(calcProgress({ progress: 0, type: 'upload' })), error));
-    console.log('up: ', up);
-    if (up instanceof Error) return reject({ type: 'upload', error: up });
-    const down = await download({ url: up.output.url, path }, p => cb(calcProgress(p))).catch(error => (cb(calcProgress({ progress: 0.66, type: 'download' })), error));
-    if (down instanceof Error) return reject({ type: 'download', error: down, url: up.output.url });
-    reslove(up);
-  });
+  public destroy() {
+    this.removeAllListeners();
+    this.req?.destroy?.();
+    this.res?.destroy?.();
+  }
 }
