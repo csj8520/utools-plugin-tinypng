@@ -7,22 +7,20 @@ import { random } from './utils';
 import ProxyAgent from 'proxy-agent';
 import { Agent } from 'node:http';
 
-export interface TinypngCompress {
-  on(event: 'progress:upload', listener: (v: number) => void): this;
-  on(event: 'progress:compress', listener: (v: number) => void): this;
-  on(event: 'progress:download', listener: (v: number) => void): this;
-  on(event: 'success:upload', listener: (v: Tinypng.Response) => void): this;
-  on(event: 'success:download', listener: () => void): this;
-  on(event: 'error:upload', listener: (v: Error) => void): this;
-  on(event: 'error:download', listener: (v: Error) => void): this;
+interface EventKeys {
+  'progress:upload': number;
+  'progress:compress': number;
+  'progress:download': number;
+  'success:upload': Tinypng.Response;
+  'success:download'?: void;
+  'error:upload': Error;
+  'error:download': Error;
+}
 
-  emit(event: 'progress:upload', v: number): boolean;
-  emit(event: 'progress:compress', v: number): boolean;
-  emit(event: 'progress:download', v: number): boolean;
-  emit(event: 'success:upload', v: Tinypng.Response): boolean;
+export interface TinypngCompress {
+  on<K extends keyof EventKeys>(event: K, listener: (v: EventKeys[K]) => void): this;
+  emit<K extends keyof EventKeys>(event: K, v: EventKeys[K]): boolean;
   emit(event: 'success:download'): boolean;
-  emit(event: 'error:upload', v: Error): boolean;
-  emit(event: 'error:download', v: Error): boolean;
 }
 
 export class TinypngCompress extends Events {

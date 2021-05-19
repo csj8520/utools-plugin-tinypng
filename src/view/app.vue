@@ -8,7 +8,6 @@
         :path="it.path"
         :progress="it.progress"
         :size="it.size"
-        :status="it.status"
         :surplus="it.surplus"
         @copy="handleCopys([it])"
         @replace="handleReplaces([it])"
@@ -256,7 +255,7 @@ export default class App extends Vue {
 
   private async handleReplaces(list: Tinypng.List[]) {
     try {
-      if (!this.info.complete) return this.$message('请等待全部压缩完成');
+      if (list.find(it => it.progress !== 1)) return this.$message('请等待全部压缩完成');
       const result = await this.$confirm('您确定要覆盖此文件吗？此操作不可还原！').catch(t => t);
       if (result !== 'confirm') return;
       for (const { tc } of list) {

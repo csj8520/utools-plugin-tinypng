@@ -157,7 +157,7 @@ export default class Item extends Vue {
   @Prop({ type: String, default: '' })
   private error!: string;
 
-  private dice = [
+  private dice: Array<[number, string[]]> = [
     [1, ['上传完成', '压缩完成', '下载图片完成']],
     [0.66, ['上传完成', '压缩完成', '下载图片中']],
     [0.33, ['上传完成', '压缩中']],

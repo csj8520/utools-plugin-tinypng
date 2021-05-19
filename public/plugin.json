@@ -21,8 +21,12 @@
         },
         {
           "type": "files",
-          "label": "压缩此文件夹下所有图片",
-          "fileType": "directory"
+          "label": "压缩此文件夹下所有图片"
+        },
+        {
+          "type": "window",
+          "match": { "app": ["Finder.app", "explorer.exe", "SearchApp.exe"], "class": ["CabinetWClass", "ExploreWClass"] },
+          "label": "压缩此文件夹下所有图片"
         }
       ]
     }

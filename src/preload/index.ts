@@ -14,15 +14,21 @@ window.tempPath = path.join(utools.getPath('temp'), 'utools.tinypng');
 utools.onPluginEnter(({ code, type, payload }) => {
   fs.existsSync(window.tempPath) || fs.mkdirSync(window.tempPath);
   console.log('用户进入插件', code, type, payload);
+  let files: Tinypng.FIleItem[] = [];
   if (type === 'files') {
-    const files: Tinypng.FIleItem[] = (payload as any[]).map(it => ({
+    files = (payload as any[]).map(it => ({
       name: it.name,
       path: it.path,
       size: fs.statSync(it.path).size
     }));
-    // @ts-ignore
-    window?.APP?.handleCompress(files);
+  } else if (type === 'window') {
+    const path = utools.getCurrentFolderPath();
+    console.log('path: ', path);
+    if (!path) return;
+    files = [{ name: '', path, size: 0 }];
   }
+  // @ts-ignore
+  files.length && window?.APP?.handleCompress(files);
 });
 
 window.document.addEventListener('keydown', async e => {
