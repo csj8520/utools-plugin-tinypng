@@ -4,8 +4,8 @@ import http from 'http';
 import https from 'https';
 import Events from 'events';
 import { random } from './utils';
-import ProxyAgent from 'proxy-agent';
-import { Agent } from 'node:http';
+// import ProxyAgent from 'proxy-agent';
+// import { Agent } from 'node:http';
 
 interface EventKeys {
   'progress:upload': number;
@@ -27,7 +27,7 @@ export class TinypngCompress extends Events {
   public filePath!: string;
   public downloadPath!: string;
   public response?: Tinypng.Response;
-  private proxy?: Agent;
+  // private proxy?: Agent;
   private req?: http.ClientRequest;
   private res?: http.IncomingMessage;
 
@@ -37,7 +37,7 @@ export class TinypngCompress extends Events {
     this.downloadPath = downloadPath;
     const proxy = utools.db.get('proxy');
     if (proxy) {
-      this.proxy = new ProxyAgent(proxy.data);
+      // this.proxy = new ProxyAgent(proxy.data);
     }
   }
 
@@ -45,7 +45,7 @@ export class TinypngCompress extends Events {
     let send = 0;
     const req = https.request(
       {
-        agent: this.proxy,
+        // agent: this.proxy,
         method: 'POST',
         hostname: random(['tinypng.com', 'tinyjpg.com']),
         path: '/web/shrink',
@@ -95,35 +95,41 @@ export class TinypngCompress extends Events {
 
     this.emit('progress:download', 0);
 
-    const req = https.request(this.response?.output.url, { agent: this.proxy }, res => {
-      this.res = res;
-      const size = Number(res.headers['content-length']);
-      let buffs = '';
-      res.setEncoding('binary');
-      res.on('data', (buf: string) => {
-        buffs += buf;
-        this.emit('progress:download', buffs.length / size);
-      });
-      res.on('end', () => {
-        const { statusCode = 0, aborted } = res;
-        if (statusCode >= 200 && statusCode < 400 && !aborted) {
-          const paths = path.parse(this.downloadPath).dir.split(path.sep);
-          paths.forEach((it, idx) => {
-            const p = paths.slice(0, idx + 1).join(path.sep);
-            fs.existsSync(p) || fs.mkdirSync(p);
-          });
-          fs.writeFile(this.downloadPath, buffs, 'binary', err => (err ? this.emit('error:download', err) : this.emit('success:download')));
-        } else {
-          this.emit('progress:download', 0);
-          let data: any = {};
-          try {
-            data = JSON.parse(buffs);
-          } catch (e) {}
-          this.emit('error:download', new Error(data.message || data.error || '...'));
-        }
-      });
-      res.on('error', err => this.emit('error:download', err));
-    });
+    const req = https.request(
+      this.response?.output.url,
+      {
+        // agent: this.proxy
+      },
+      res => {
+        this.res = res;
+        const size = Number(res.headers['content-length']);
+        let buffs = '';
+        res.setEncoding('binary');
+        res.on('data', (buf: string) => {
+          buffs += buf;
+          this.emit('progress:download', buffs.length / size);
+        });
+        res.on('end', () => {
+          const { statusCode = 0, aborted } = res;
+          if (statusCode >= 200 && statusCode < 400 && !aborted) {
+            const paths = path.parse(this.downloadPath).dir.split(path.sep);
+            paths.forEach((it, idx) => {
+              const p = paths.slice(0, idx + 1).join(path.sep);
+              fs.existsSync(p) || fs.mkdirSync(p);
+            });
+            fs.writeFile(this.downloadPath, buffs, 'binary', err => (err ? this.emit('error:download', err) : this.emit('success:download')));
+          } else {
+            this.emit('progress:download', 0);
+            let data: any = {};
+            try {
+              data = JSON.parse(buffs);
+            } catch (e) {}
+            this.emit('error:download', new Error(data.message || data.error || '...'));
+          }
+        });
+        res.on('error', err => this.emit('error:download', err));
+      }
+    );
     this.req = req;
     req.on('error', err => this.emit('error:download', err));
     req.end();

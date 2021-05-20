@@ -124,7 +124,7 @@ import { Vue, Component } from 'vue-property-decorator';
 
 import BlockItem from './block-item.vue';
 
-const { path, fs, utils, tinypng, glob } = window;
+const { path, fs, utils, tinypng } = window;
 const { Queue } = utils;
 const { TinypngCompress } = tinypng;
 
@@ -179,22 +179,20 @@ export default class App extends Vue {
 
     // 递归图片文件
     let list: Tinypng.FIleItem[] = [];
-    files.forEach(it => {
-      if (fs.statSync(it.path).isDirectory()) {
-        glob
-          .sync(path.join(it.path, '**/**.{png,jpeg,jpg}'))
-          .map(item => path.normalize(item))
-          .forEach(item =>
-            list.push({
-              path: item,
-              name: path.parse(it.path).name + item.replace(it.path, ''),
-              size: fs.statSync(item).size
-            })
-          );
-      } else if (this.imageReg.test(it.name)) {
-        list.push({ name: it.name, path: it.path, size: it.size });
-      }
-    });
+    for (const it of files) {
+      const imagePaths = await utils.find(it.path, this.imageReg);
+      console.log('imagePaths: ', imagePaths);
+      imagePaths
+        .map(item => path.normalize(item))
+        .forEach(item =>
+          list.push({
+            path: item,
+            name: it.path === item ? path.parse(it.path).base : path.parse(it.path).name + item.replace(it.path, ''),
+            size: fs.statSync(item).size
+          })
+        );
+    }
+    if (files.length && !list.length) return this.$message('未找到支持压缩的图片！');
     if (list.length > 20) {
       const data = await this.$confirm('当前文件超过20个可能会压缩失败', { confirmButtonText: '继续' }).catch(t => t);
       if (data !== 'confirm') return;

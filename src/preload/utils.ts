@@ -1,3 +1,6 @@
+import { promises as fs } from 'fs';
+import path from 'path';
+
 export class Queue {
   private max = 2;
   private _list: Promise<any>[] = [];
@@ -73,5 +76,23 @@ export function random(x: any, y?: any, repeat = true) {
     return arr;
   } else {
     throw new Error('Type Error');
+  }
+}
+
+export async function find(rootPath: string, include: RegExp, exclude?: RegExp): Promise<string[]> {
+  if (exclude && exclude.test(rootPath)) return [];
+  const files: string[] = [];
+  const root = await fs.stat(rootPath);
+  if (root.isDirectory()) {
+    const dirFiles = await fs.readdir(rootPath);
+    for (let it of dirFiles) {
+      const childrens = await find(path.join(rootPath, it), include, exclude);
+      files.push(...childrens);
+    }
+    return files;
+  } else if (root.isFile()) {
+    return include.test(rootPath) ? files.concat(rootPath) : files;
+  } else {
+    return files;
   }
 }

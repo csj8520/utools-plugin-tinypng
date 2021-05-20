@@ -41,7 +41,6 @@ interface Window {
   utils: typeof import('@/preload/utils');
   tinypng: typeof import('@/preload/tinypng');
   fs: typeof import('fs');
-  glob: typeof import('glob');
   path: typeof import('path');
   APP: import('vue').default;
 }
