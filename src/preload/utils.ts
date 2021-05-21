@@ -66,12 +66,8 @@ export function random(x: any, y?: any, repeat = true) {
     const arr: any[] = [];
     for (let i = 0; i < y; i++) {
       const index = random(0, o.length - 1);
-      if (repeat) {
-        arr.push(o[index]);
-      } else {
-        arr.push(o[index]);
-        o.splice(index, 1);
-      }
+      arr.push(o[index]);
+      if (!repeat) o.splice(index, 1);
     }
     return arr;
   } else {
@@ -81,9 +77,10 @@ export function random(x: any, y?: any, repeat = true) {
 
 export async function find(rootPath: string, include: RegExp, exclude?: RegExp): Promise<string[]> {
   if (exclude && exclude.test(rootPath)) return [];
-  const files: string[] = [];
-  const root = await fs.stat(rootPath);
+  const root = await fs.stat(rootPath).catch(() => null);
+  if (!root) return [];
   if (root.isDirectory()) {
+    const files: string[] = [];
     const dirFiles = await fs.readdir(rootPath);
     for (let it of dirFiles) {
       const childrens = await find(path.join(rootPath, it), include, exclude);
@@ -91,8 +88,8 @@ export async function find(rootPath: string, include: RegExp, exclude?: RegExp):
     }
     return files;
   } else if (root.isFile()) {
-    return include.test(rootPath) ? files.concat(rootPath) : files;
+    return include.test(rootPath) ? [rootPath] : [];
   } else {
-    return files;
+    return [];
   }
 }

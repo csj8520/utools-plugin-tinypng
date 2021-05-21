@@ -1,9 +1,12 @@
+/** @typedef { import('webpack').Configuration } WebpackConfiguration */
+
 const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
 const { VueLoaderPlugin } = require('vue-loader');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 
+/** @type { WebpackConfiguration } */
 module.exports = {
   entry: {
     app: './src/main.ts',
@@ -54,6 +57,21 @@ module.exports = {
     path: path.resolve(__dirname, 'dist')
   },
   optimization: {
-    minimizer: [new TerserPlugin({ exclude: /preload\.js/ })]
+    minimizer: [
+      new TerserPlugin({
+        exclude: /preload\.js/,
+        terserOptions: { compress: { drop_console: true } }
+      }),
+      new TerserPlugin({
+        include: /preload\.js/,
+        terserOptions: {
+          compress: false,
+          keep_classnames: true,
+          keep_fnames: true,
+          mangle: false,
+          format: { beautify: true, comments: 'some' }
+        }
+      })
+    ]
   }
 };

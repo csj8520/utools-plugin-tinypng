@@ -16,11 +16,13 @@
         "压缩图片",
         {
           "type": "files",
-          "label": "压缩图片",
-          "match": "/\\.(png|jpeg|jpg)$/i"
+          "fileType": "file",
+          "match": "/\\.(png|jpeg|jpg)$/i",
+          "label": "压缩图片"
         },
         {
           "type": "files",
+          "fileType": "directory",
           "label": "压缩此文件夹下所有图片"
         },
         {

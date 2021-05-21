@@ -194,7 +194,7 @@ export default class App extends Vue {
     }
     if (files.length && !list.length) return this.$message('未找到支持压缩的图片！');
     if (list.length > 20) {
-      const data = await this.$confirm('当前文件超过20个可能会压缩失败', { confirmButtonText: '继续' }).catch(t => t);
+      const data = await this.$confirm('当前文件超过20个可能会压缩失败', { cancelButtonText: '放弃', confirmButtonText: '继续' }).catch(t => t);
       if (data !== 'confirm') return;
     }
     // 实例

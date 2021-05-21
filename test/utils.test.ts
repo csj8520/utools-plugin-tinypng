@@ -1,14 +1,15 @@
 /// <reference path="../node_modules/@types/jest/index.d.ts" />
 
-import { random, bytesToSize, delay } from '../src/preload/utils';
+import path from 'path';
+import { random, bytesToSize, delay, find } from '../src/preload/utils';
 
 test('random', () => {
-  expect(typeof random(0, 5)).toBe('number');
-  expect(typeof random([1, 2, 3])).toBe('number');
+  expect([0, 1, 2, 3, 4, 5].includes(random(0, 5))).toBeTruthy();
+  expect([1, 2, 3].includes(random([1, 2, 3]))).toBeTruthy();
   expect(random([1, 2, 3], 1)).toHaveLength(1);
   expect(random([1, 2, 3], 2)).toHaveLength(2);
-  expect(random('abcdef')).toHaveLength(1);
-  expect(random('abcdef', 1)).toHaveLength(1);
+  expect('abcdef'.includes(random('abcdef'))).toBeTruthy();
+  expect('abcdef'.includes(random('abcdef', 1))).toBeTruthy();
   expect(random('abcdef', 2)).toHaveLength(2);
 });
 
@@ -27,4 +28,13 @@ test('bytesToSize', () => {
 
 test('delay', () => {
   expect(delay(1) instanceof Promise).toBeTruthy();
+});
+
+test('find', async () => {
+  expect(await find(path.join(process.cwd(), 'src'), /\.ts$/)).toHaveLength(4);
+  expect(await find(path.join(process.cwd(), 'src'), /\.vue$/)).toHaveLength(2);
+  expect(await find(path.join(process.cwd(), 'src'), /\.stylus$/)).toHaveLength(2);
+  expect(await find(path.join(process.cwd(), 'src'), /\.(ts|vue)$/, /app.vue$/)).toHaveLength(5);
+  expect(await find(path.join(process.cwd(), 'src/main.ts'), /\.(ts|vue)$/, /app.vue$/)).toHaveLength(1);
+  expect(await find(path.join(process.cwd(), 'src/xxxmain.ts'), /\.(ts|vue)$/, /app.vue$/)).toHaveLength(0);
 });

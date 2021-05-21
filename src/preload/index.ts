@@ -1,3 +1,7 @@
+/** @preserve
+ * 如果上传或下载失败可能是网络原因请多试几次
+ */
+
 import path from 'path';
 import fs from 'fs';
 import * as utils from './utils';
