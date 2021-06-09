@@ -5,6 +5,7 @@ const CopyPlugin = require('copy-webpack-plugin');
 const { VueLoaderPlugin } = require('vue-loader');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
+const Dotenv = require('dotenv-webpack');
 
 /** @type { WebpackConfiguration } */
 module.exports = {
@@ -13,7 +14,7 @@ module.exports = {
     preload: './src/preload/index.ts'
   },
   target: 'node',
-  plugins: [new CleanWebpackPlugin(), new VueLoaderPlugin(), new CopyPlugin({ patterns: [{ from: 'public' }, { from: 'README.md' }] })],
+  plugins: [new CleanWebpackPlugin(), new VueLoaderPlugin(), new CopyPlugin({ patterns: [{ from: 'public' }, { from: 'README.md' }] }), new Dotenv({ systemvars: true })],
   resolve: {
     extensions: ['.js', '.ts', '.json'],
     alias: { '@': path.join(__dirname, 'src') }
@@ -60,7 +61,7 @@ module.exports = {
     minimizer: [
       new TerserPlugin({
         exclude: /preload\.js/,
-        terserOptions: { compress: { drop_console: true } }
+        terserOptions: { compress: { drop_console: process.env.DEBUG !== 'true' } }
       }),
       new TerserPlugin({
         include: /preload\.js/,

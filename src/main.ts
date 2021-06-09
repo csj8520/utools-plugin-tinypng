@@ -6,6 +6,11 @@ import '@/style/iconfont.stylus';
 
 import App from './view/app.vue';
 
+if (process.env.DEBUG == 'true') {
+  const eruda = require('eruda');
+  eruda.init();
+}
+
 const { bytesToSize } = window.utils;
 
 window.addEventListener('load', () => {

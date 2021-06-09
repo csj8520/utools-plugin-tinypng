@@ -234,11 +234,11 @@ export default class App extends Vue {
       });
 
       this.list[idx].tc.on('error:upload', err => {
-        console.log('error:upload', err);
+        console.error('error:upload', err);
         this.$set(this.list, idx, { ...this.list[idx], progress: 0, error: `Upload Error: ${err.message}` });
       });
       this.list[idx].tc.on('error:download', err => {
-        console.log('error:download', err);
+        console.error('error:download', err);
         this.$set(this.list, idx, { ...this.list[idx], error: `Download Error: ${err.message}` });
       });
 

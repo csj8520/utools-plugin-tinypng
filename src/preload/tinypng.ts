@@ -99,12 +99,19 @@ export class TinypngCompress extends Events {
       res.on('end', () => {
         const { statusCode = 0, aborted } = res;
         if (statusCode >= 200 && statusCode < 400 && !aborted) {
-          const paths = path.parse(this.downloadPath).dir.split(path.sep);
-          paths.forEach((it, idx) => {
-            const p = paths.slice(0, idx + 1).join(path.sep);
-            fs.existsSync(p) || fs.mkdirSync(p);
-          });
-          fs.writeFile(this.downloadPath, buffs, 'binary', err => (err ? this.emit('error:download', err) : this.emit('success:download')));
+          try {
+            const paths = path.parse(this.downloadPath).dir.split(path.sep);
+            paths.slice(1).forEach((it, idx) => {
+              const p = paths.slice(0, idx + 2).join(path.sep);
+              console.log('check and mkdir: ', p);
+              fs.existsSync(p) || fs.mkdirSync(p);
+            });
+            console.log('this.downloadPath: ', this.downloadPath);
+            fs.writeFile(this.downloadPath, buffs, 'binary', err => (err ? this.emit('error:download', err) : this.emit('success:download')));
+          } catch (error) {
+            console.error('缓存图片错误', error);
+            this.emit('error:download', error);
+          }
         } else {
           this.emit('progress:download', 0);
           let data: any = {};
