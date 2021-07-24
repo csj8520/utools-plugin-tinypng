@@ -1429,11 +1429,6 @@
   resolved "https://registry.npm.taobao.org/@types/node/download/@types/node-14.14.31.tgz#72286bd33d137aa0d152d47ec7c1762563d34055"
   integrity sha1-cihr0z0TeqDRUtR+x8F2JWPTQFU=
 
-"@types/node@^15.0.1":
-  version "15.3.1"
-  resolved "https://registry.nlark.com/@types/node/download/@types/node-15.3.1.tgz?cache=0&sync_timestamp=1621463636059&other_urls=https%3A%2F%2Fregistry.nlark.com%2F%40types%2Fnode%2Fdownload%2F%40types%2Fnode-15.3.1.tgz#23a06b87eedb524016616e886b116b8fdcb180af"
-  integrity sha1-I6Brh+7bUkAWYW6IaxFrj9yxgK8=
-
 "@types/node@^15.12.2":
   version "15.12.2"
   resolved "https://registry.nlark.com/@types/node/download/@types/node-15.12.2.tgz#1f2b42c4be7156ff4a6f914b2fb03d05fa84e38d"
@@ -5304,12 +5299,10 @@ util-deprecate@^1.0.2:
   resolved "https://registry.npm.taobao.org/util-deprecate/download/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
   integrity sha1-RQ1Nyfpw3nMnYvvS1KKJgUGaDM8=
 
-utools-helper@^1.5.1:
-  version "1.5.1"
-  resolved "https://registry.nlark.com/utools-helper/download/utools-helper-1.5.1.tgz#1a550134d68c08656f1f933d09432b1bd3a4adfc"
-  integrity sha1-GlUBNNaMCGVvH5M9CUMrG9Okrfw=
-  dependencies:
-    "@types/node" "^15.0.1"
+utools-api-types@^2.0.6:
+  version "2.0.6"
+  resolved "https://registry.nlark.com/utools-api-types/download/utools-api-types-2.0.6.tgz#5ab3384ddf1de1c2ad9367ee1268df08b81c6595"
+  integrity sha1-WrM4Td8d4cKtk2fuEmjfCLgcZZU=
 
 v8-compile-cache@^2.2.0:
   version "2.3.0"

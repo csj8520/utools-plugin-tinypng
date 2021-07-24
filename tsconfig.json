@@ -68,12 +68,6 @@
     /* Advanced Options */
     "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */,
     "skipLibCheck": true,
-    "types": [
-      // utools api
-      "utools-helper/@types/utools",
-      // electron api
-      "utools-helper/@types/electron",
-      "@types/node"
-    ]
+    "types": ["utools-api-types", "@types/node"]
   }
 }

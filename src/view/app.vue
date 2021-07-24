@@ -276,7 +276,7 @@ export default class App extends Vue {
 
   private handleDrop(e: DragEvent) {
     this.draged = false;
-    this.handleCompress(Array.from(e.dataTransfer?.files || []));
+    this.handleCompress((Array.from(e.dataTransfer?.files || []) as any) as Tinypng.FIleItem[]);
   }
 }
 </script>

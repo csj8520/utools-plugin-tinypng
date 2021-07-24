@@ -2,10 +2,10 @@
  * 如果上传或下载失败可能是网络原因请多试几次
  */
 
-import path from 'path';
 import fs from 'fs';
-import * as utils from './utils';
+import path from 'path';
 import * as tinypng from './tinypng';
+import * as utils from './utils';
 
 window.fs = fs;
 window.utils = utils;
@@ -13,7 +13,7 @@ window.tinypng = tinypng;
 window.path = path;
 window.tempPath = path.join(utools.getPath('temp'), 'utools.tinypng');
 
-utools.onPluginEnter(({ code, type, payload }) => {
+utools.onPluginEnter(async ({ code, type, payload }) => {
   fs.existsSync(window.tempPath) || fs.mkdirSync(window.tempPath);
   console.log('用户进入插件', code, type, payload);
   let files: Tinypng.FIleItem[] = [];
@@ -24,7 +24,7 @@ utools.onPluginEnter(({ code, type, payload }) => {
       size: fs.statSync(it.path).size
     }));
   } else if (type === 'window') {
-    const path = utools.getCurrentFolderPath();
+    const path = await utools.readCurrentFolderPath();
     console.log('path: ', path);
     if (!path) return;
     files = [{ name: '', path, size: 0 }];

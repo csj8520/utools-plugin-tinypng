@@ -13,6 +13,7 @@ module.exports = {
     app: './src/main.ts',
     preload: './src/preload/index.ts'
   },
+  cache: true,
   target: 'node',
   plugins: [new CleanWebpackPlugin(), new VueLoaderPlugin(), new CopyPlugin({ patterns: [{ from: 'public' }, { from: 'README.md' }] }), new Dotenv({ systemvars: true })],
   resolve: {
@@ -22,7 +23,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.js$/, //正则匹配.js后缀文件,使用babel-loader进行解析
+        test: /\.js$/, // 正则匹配.js后缀文件,使用babel-loader进行解析
         exclude: /node_modules/,
         use: ['babel-loader']
       },
