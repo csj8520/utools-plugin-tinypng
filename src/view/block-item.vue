@@ -4,9 +4,9 @@
       <img :src="path" />
     </div>
     <div class="item__name">{{ name }}</div>
-    <div class="item__size">{{ size | bytes }}</div>
+    <div class="item__size">{{ bytes(size) }}</div>
     <div class="item__size-compress">
-      <template v-if="surplus">{{ surplus | bytes }}</template>
+      <template v-if="surplus">{{ bytes(surplus) }}</template>
       <template v-else>-</template>
     </div>
     <div class="item__compress-ratio">{{ surplus ? `-${(((size - surplus) / size) * 100).toFixed(2)}%` : '-' }}</div>
@@ -135,37 +135,27 @@
 </style>
 
 <script lang="ts">
-import { Vue, Component, Prop } from 'vue-property-decorator';
+import { defineComponent, computed, watch } from "vue";
 
-@Component
-export default class Item extends Vue {
-  @Prop({ type: String, default: '' })
-  private path!: string;
+export default defineComponent({
+  props: {
+    path: { type: String, default: "" },
+    name: { type: String, default: "" },
+    surplus: { type: Number, default: 0 },
+    size: { type: Number, default: 0 },
+    progress: { type: Number, default: 0 },
+    error: { type: String, default: "" }
+  },
 
-  @Prop({ type: String, default: '' })
-  private name!: string;
-
-  @Prop({ type: Number, default: 0 })
-  private surplus!: number;
-
-  @Prop({ type: Number, default: 0 })
-  private size!: number;
-
-  @Prop({ type: Number, default: 0 })
-  private progress!: number;
-
-  @Prop({ type: String, default: '' })
-  private error!: string;
-
-  private dice: Array<[number, string[]]> = [
-    [1, ['上传完成', '压缩完成', '下载图片完成']],
-    [0.66, ['上传完成', '压缩完成', '下载图片中']],
-    [0.33, ['上传完成', '压缩中']],
-    [0, ['上传中']]
-  ];
-
-  private get status() {
-    return this.dice.find(([p]) => this.progress >= p)?.[1] ?? [];
+  setup(props) {
+    const dice: Array<[number, string[]]> = [
+      [1, ["上传完成", "压缩完成", "下载图片完成"]],
+      [0.66, ["上传完成", "压缩完成", "下载图片中"]],
+      [0.33, ["上传完成", "压缩中"]],
+      [0, ["上传中"]]
+    ];
+    const status = computed(() => dice.find(([p]) => props.progress >= p)?.[1] ?? []);
+    return { ...window.utils, status };
   }
-}
+});
 </script>

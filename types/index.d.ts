@@ -1,4 +1,4 @@
-namespace Tinypng {
+declare namespace Tinypng {
   export interface FIleItem {
     name: string;
     path: string;
@@ -21,7 +21,7 @@ namespace Tinypng {
   }
 }
 
-namespace Response {
+declare namespace Response {
   export interface Input {
     size: number;
     type: string;
@@ -36,11 +36,11 @@ namespace Response {
   }
 }
 
-interface Window {
+declare interface Window {
   tempPath: string;
   utils: typeof import('@/preload/utils');
   tinypng: typeof import('@/preload/tinypng');
   fs: typeof import('fs');
   path: typeof import('path');
-  APP: import('vue').default;
+  APP: any;
 }

@@ -2,6 +2,9 @@
   "main": "index.html",
   "logo": "logo.png",
   "preload": "preload.js",
+  "development": {
+    "main": "http://127.0.0.1:3100"
+  },
   "features": [
     {
       "code": "tinypng",

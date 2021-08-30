@@ -29,14 +29,5 @@ utools.onPluginEnter(async ({ code, type, payload }) => {
     if (!path) return;
     files = [{ name: '', path, size: 0 }];
   }
-  // @ts-ignore
-  files.length && window?.APP?.handleCompress(files);
+  files.length && window?.APP?._instance?.setupState?.handleCompress?.(files);
 });
-
-// window.document.addEventListener('keydown', async e => {
-//   if (e.code === 'KeyP' && e.ctrlKey && e.altKey && window?.APP?.$prompt) {
-//     const old = utools.db.get('proxy');
-//     const data: any = await window.APP.$prompt('输入代理地址', { showInput: true, inputValue: old?.data, inputPlaceholder: 'http://127.0.0.1:10809' }).catch(() => void 0);
-//     data && utools.db.put({ _id: 'proxy', _rev: old?._rev, data: (data.value || '').trim() });
-//   }
-// });

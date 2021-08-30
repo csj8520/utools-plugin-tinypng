@@ -3,50 +3,25 @@
   "version": "1.1.3",
   "description": "使用tinypng压缩图片",
   "scripts": {
-    "dev": "cross-env DEBUG=true webpack --mode development --watch",
-    "build": "webpack --mode production",
-    "build:debug": "cross-env DEBUG=true webpack --mode production",
-    "test": "jest"
+    "dev": "cross-env MODE=development node ./scripts/build.js",
+    "build": "cross-env MODE=production node ./scripts/build.js"
   },
   "author": "csj8520",
   "license": "MIT",
   "devDependencies": {
-    "@babel/core": "^7.14.3",
-    "@types/copy-webpack-plugin": "^8.0.0",
-    "@types/jest": "^26.0.23",
-    "@types/node": "^15.12.2",
-    "@types/terser-webpack-plugin": "^5.0.3",
-    "@types/webpack": "^5.28.0",
-    "@vue/babel-preset-app": "^4.5.13",
-    "babel-loader": "^8.2.2",
-    "babel-plugin-component": "^1.1.1",
-    "babel-preset-es2015": "^6.24.1",
-    "clean-webpack-plugin": "^3.0.0",
-    "copy-webpack-plugin": "^9.0.0",
+    "@types/node": "^16.7.6",
+    "@vitejs/plugin-vue": "^1.6.0",
+    "@vue/compiler-sfc": "^3.2.6",
     "cross-env": "^7.0.3",
-    "css-loader": "^5.2.6",
-    "dotenv-webpack": "^7.0.3",
-    "eruda": "^2.4.1",
-    "file-loader": "^6.2.0",
-    "jest": "^27.0.4",
-    "style-loader": "^2.0.0",
+    "sass": "^1.38.2",
     "stylus": "^0.54.8",
-    "stylus-loader": "^6.0.0",
-    "terser-webpack-plugin": "^5.1.3",
-    "ts-jest": "^27.0.3",
-    "ts-loader": "^9.2.3",
-    "typescript": "^4.3.2",
     "utools-api-types": "^2.0.6",
-    "vue-loader": "15.9.7",
-    "vue-style-loader": "^4.1.3",
-    "vue-template-compiler": "^2.6.14",
-    "webpack": "^5.38.1",
-    "webpack-cli": "^4.7.2"
+    "vite": "^2.5.1",
+    "vite-plugin-element-plus": "^0.0.12",
+    "vite-plugin-style-import": "^1.2.1"
   },
   "dependencies": {
-    "element-ui": "^2.15.2",
-    "vue": "^2.6.14",
-    "vue-class-component": "^7.2.6",
-    "vue-property-decorator": "^9.1.2"
+    "element-plus": "^1.1.0-beta.7",
+    "vue": "^3.1.5"
   }
 }

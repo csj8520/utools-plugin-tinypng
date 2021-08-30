@@ -1,4 +1,4 @@
-import { promises as fs } from 'fs';
+import fs from 'fs/promises';
 import path from 'path';
 
 export class Queue {
@@ -36,7 +36,7 @@ export const delay = (t: number) => new Promise(r => setTimeout(r, t));
 //   await a.finish();
 // })();
 
-export function bytesToSize(bytes: number) {
+export function bytes(bytes: number) {
   if (bytes === 0) return '0B';
   let k = 1024;
   let sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
