@@ -110,7 +110,7 @@ export class TinypngCompress extends Events {
             fs.writeFile(this.downloadPath, buffs, 'binary', err => (err ? this.emit('error:download', err) : this.emit('success:download')));
           } catch (error) {
             console.error('缓存图片错误', error);
-            this.emit('error:download', error);
+            this.emit('error:download', error as Error);
           }
         } else {
           this.emit('progress:download', 0);

@@ -13,6 +13,3 @@ const app = createApp(App);
 app.use(ElButton);
 
 app.mount('body');
-// console.log('app: ', app._instance.setupState.handleCopyAll);
-
-window.APP = app;

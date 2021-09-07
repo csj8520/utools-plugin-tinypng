@@ -15,7 +15,7 @@
         {
           "type": "files",
           "fileType": "file",
-          "match": "/\\.(png|jpeg|jpg)$/i",
+          "match": "/\\.(png|jpeg|jpg|webp)$/i",
           "label": "压缩图片"
         },
         {

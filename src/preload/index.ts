@@ -29,5 +29,5 @@ utools.onPluginEnter(async ({ code, type, payload }) => {
     if (!path) return;
     files = [{ name: '', path, size: 0 }];
   }
-  files.length && window?.APP?._instance?.setupState?.handleCompress?.(files);
+  files.length && window?.APP?.handleCompress?.(files);
 });

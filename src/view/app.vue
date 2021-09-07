@@ -133,7 +133,7 @@ export default defineComponent({
   setup() {
     const draged = ref<boolean>(false);
     const list = ref<Tinypng.List[]>([]);
-    const imageReg = /\.(png|jpeg|jpg)$/i;
+    const imageReg = /\.(png|jpeg|jpg|webp)$/i;
     const queue = new Queue(3);
 
     const info = computed(() => {
@@ -154,7 +154,13 @@ export default defineComponent({
 
     async function handleCompress(files: Tinypng.FIleItem[]) {
       if (!info.value.complete) {
-        if ((await ElMessageBox.confirm("还有任务未完成确认覆盖吗?").catch((t) => t)) !== "confirm") return;
+        if (
+          (await ElMessageBox.confirm("还有任务未完成确认覆盖吗?", {
+            confirmButtonText: "确认",
+            cancelButtonText: "取消"
+          }).catch((t) => t)) !== "confirm"
+        )
+          return;
       }
 
       if (!/utools.tinypng$/.test(window.tempPath)) return ElMessage.error("图片缓存路径异常！");
@@ -256,7 +262,10 @@ export default defineComponent({
     async function handleReplaces(list: Tinypng.List[]) {
       try {
         if (list.find((it) => it.progress !== 1)) return ElMessage("请等待全部压缩完成");
-        const result = await ElMessageBox.confirm("您确定要覆盖此文件吗？此操作不可还原！").catch((t) => t);
+        const result = await ElMessageBox.confirm("您确定要覆盖此文件吗？此操作不可还原！", {
+          confirmButtonText: "确认",
+          cancelButtonText: "取消"
+        }).catch((t) => t);
 
         if (result !== "confirm") return;
         for (const { tc } of list) {
@@ -283,6 +292,9 @@ export default defineComponent({
       draged.value = false;
       handleCompress(Array.from(e.dataTransfer?.files || []) as any as Tinypng.FIleItem[]);
     }
+    window.APP = {
+      handleCompress
+    };
 
     return {
       ...utils,
