@@ -9,7 +9,7 @@
         :progress="it.progress"
         :size="it.size"
         :surplus="it.surplus"
-        @copy="handleCopys([it])"
+        @copy-image="handleCopys([it])"
         @replace="handleReplaces([it])"
         @retry="handleCompressOne(index)"
         v-for="(it, index) in list"
@@ -37,12 +37,14 @@
   </div>
 </template>
 
-<style lang="stylus">
+<style lang="scss">
 .app {
   display: flex;
   flex-direction: column;
+  background: #fff;
+  color: #000;
 
-  >ul {
+  > ul {
     flex: 1;
     overflow-y: auto;
     padding-bottom: 15px;
@@ -64,7 +66,7 @@
       width: var(--width);
       height: 6px;
       background: #60a7ff;
-      border-radius: @height * 0.5;
+      border-radius: 3px;
       transition: width 0.5s;
     }
 
@@ -102,7 +104,7 @@
     transition: 0.3s;
     color: #222;
 
-    &[draged] {
+    &[draged='true'] {
       background: rgba(0, 0, 0, 0.5);
       color: #000;
     }
@@ -117,12 +119,27 @@
     }
   }
 }
+
+@media (prefers-color-scheme: dark) {
+  .app {
+    background: #2b2c2d;
+    color: #ccc;
+    &__drag {
+      color: #ccc;
+      background: rgba(0, 0, 0, 0);
+      &[draged='true'] {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+      }
+    }
+  }
+}
 </style>
 
 <script lang="ts">
-import { computed, defineComponent, ref } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
-import BlockItem from "./block-item.vue";
+import { computed, defineComponent, ref } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import BlockItem from './block-item.vue';
 
 const { path, fs, utils, tinypng } = window;
 const { Queue } = utils;
@@ -138,8 +155,8 @@ export default defineComponent({
 
     const info = computed(() => {
       const sum = list.value.length;
-      const success = list.value.filter((it) => it.progress === 1);
-      const error = list.value.filter((it) => it.error);
+      const success = list.value.filter(it => it.progress === 1);
+      const error = list.value.filter(it => it.error);
       const total = success.reduce((a, b) => a + b.size, 0);
       const surplus = success.reduce((a, b) => a + b.surplus, 0);
       return {
@@ -155,55 +172,55 @@ export default defineComponent({
     async function handleCompress(files: Tinypng.FIleItem[]) {
       if (!info.value.complete) {
         if (
-          (await ElMessageBox.confirm("还有任务未完成确认覆盖吗?", {
-            confirmButtonText: "确认",
-            cancelButtonText: "取消"
-          }).catch((t) => t)) !== "confirm"
+          (await ElMessageBox.confirm('还有任务未完成确认覆盖吗?', {
+            confirmButtonText: '确认',
+            cancelButtonText: '取消'
+          }).catch(t => t)) !== 'confirm'
         )
           return;
       }
 
-      if (!/utools.tinypng$/.test(window.tempPath)) return ElMessage.error("图片缓存路径异常！");
+      if (!/utools.tinypng$/.test(window.tempPath)) return ElMessage.error('图片缓存路径异常！');
 
       // 移除上一次的缓存
       fs.readdirSync(window.tempPath)
-        .map((it) => path.join(window.tempPath, it))
-        .filter((it) => it.includes("utools.tinypng"))
-        .forEach((it) => (fs.statSync(it).isFile() ? fs.unlinkSync(it) : fs.rmdirSync(it, { recursive: true })));
+        .map(it => path.join(window.tempPath, it))
+        .filter(it => it.includes('utools.tinypng'))
+        .forEach(it => (fs.statSync(it).isFile() ? fs.unlinkSync(it) : fs.rmdirSync(it, { recursive: true })));
 
       console.log(files);
 
       // 销毁旧的实例
-      list.value.forEach((it) => it.tc.destroy());
+      list.value.forEach(it => it.tc.destroy());
       list.value = [];
 
       // 递归图片文件
       let _list: Tinypng.FIleItem[] = [];
       for (const it of files) {
         const imagePaths = await utils.find(it.path, imageReg);
-        console.log("imagePaths: ", imagePaths);
+        console.log('imagePaths: ', imagePaths);
         imagePaths
-          .map((item) => path.normalize(item))
-          .forEach((item) =>
+          .map(item => path.normalize(item))
+          .forEach(item =>
             _list.push({
               path: item,
-              name: it.path === item ? path.parse(it.path).base : path.parse(it.path).name + item.replace(it.path, ""),
+              name: it.path === item ? path.parse(it.path).base : path.parse(it.path).name + item.replace(it.path, ''),
               size: fs.statSync(item).size
             })
           );
       }
-      if (files.length && !_list.length) return ElMessage("未找到支持压缩的图片！");
+      if (files.length && !_list.length) return ElMessage('未找到支持压缩的图片！');
       if (_list.length > 20) {
-        const data = await ElMessageBox.confirm("当前文件超过20个可能会压缩失败", { cancelButtonText: "放弃", confirmButtonText: "继续" }).catch(
-          (t) => t
+        const data = await ElMessageBox.confirm('当前文件超过20个可能会压缩失败', { cancelButtonText: '放弃', confirmButtonText: '继续' }).catch(
+          t => t
         );
-        if (data !== "confirm") return;
+        if (data !== 'confirm') return;
       }
       // 实例
-      list.value = _list.map((it) => ({
+      list.value = _list.map(it => ({
         ...it,
         progress: 0,
-        error: "",
+        error: '',
         surplus: 0,
         tc: new TinypngCompress({ filePath: it.path, downloadPath: path.join(window.tempPath, it.name) })
       }));
@@ -215,42 +232,42 @@ export default defineComponent({
     }
 
     function handleCompressOne(idx: number): Promise<any> {
-      return new Promise<void>((res) => {
+      return new Promise<void>(res => {
         list.value[idx].tc.removeAllListeners();
-        list.value[idx].tc.on("progress:upload", (p) => {
-          console.log("progress:upload", p);
+        list.value[idx].tc.on('progress:upload', p => {
+          console.log('progress:upload', p);
           list.value[idx] = { ...list.value[idx], progress: p * 0.33 };
         });
-        list.value[idx].tc.on("progress:compress", (p) => {
+        list.value[idx].tc.on('progress:compress', p => {
           list.value[idx] = { ...list.value[idx], progress: p * 0.33 + 0.33 };
-          console.log("progress:compress", p);
+          console.log('progress:compress', p);
         });
-        list.value[idx].tc.on("progress:download", (p) => {
+        list.value[idx].tc.on('progress:download', p => {
           list.value[idx] = { ...list.value[idx], progress: p * 0.33 + 0.66 };
-          console.log("progress:download", p);
+          console.log('progress:download', p);
         });
 
-        list.value[idx].tc.on("success:upload", (p) => {
+        list.value[idx].tc.on('success:upload', p => {
           list.value[idx] = { ...list.value[idx], progress: 0.66, surplus: p.output.size };
-          console.log("success:upload", p, list.value[idx].tc);
+          console.log('success:upload', p, list.value[idx].tc);
           list.value[idx].tc.download();
         });
-        list.value[idx].tc.on("success:download", () => {
+        list.value[idx].tc.on('success:download', () => {
           list.value[idx] = { ...list.value[idx], progress: 1 };
-          console.log("success:download");
+          console.log('success:download');
           res();
         });
 
-        list.value[idx].tc.on("error:upload", (err) => {
-          console.error("error:upload", err);
+        list.value[idx].tc.on('error:upload', err => {
+          console.error('error:upload', err);
           list.value[idx] = { ...list.value[idx], progress: 0, error: `Upload Error: ${err.message}` };
         });
-        list.value[idx].tc.on("error:download", (err) => {
-          console.error("error:download", err);
+        list.value[idx].tc.on('error:download', err => {
+          console.error('error:download', err);
           list.value[idx] = { ...list.value[idx], error: `Download Error: ${err.message}` };
         });
 
-        list.value[idx] = { ...list.value[idx], error: "" };
+        list.value[idx] = { ...list.value[idx], error: '' };
         if (list.value[idx].progress >= 0.66) {
           list.value[idx].tc.download();
         } else {
@@ -261,31 +278,31 @@ export default defineComponent({
 
     async function handleReplaces(list: Tinypng.List[]) {
       try {
-        if (list.find((it) => it.progress !== 1)) return ElMessage("请等待全部压缩完成");
-        const result = await ElMessageBox.confirm("您确定要覆盖此文件吗？此操作不可还原！", {
-          confirmButtonText: "确认",
-          cancelButtonText: "取消"
-        }).catch((t) => t);
+        if (list.find(it => it.progress !== 1)) return ElMessage('请等待全部压缩完成');
+        const result = await ElMessageBox.confirm('您确定要覆盖此文件吗？此操作不可还原！', {
+          confirmButtonText: '确认',
+          cancelButtonText: '取消'
+        }).catch(t => t);
 
-        if (result !== "confirm") return;
+        if (result !== 'confirm') return;
         for (const { tc } of list) {
           fs.createReadStream(tc.downloadPath).pipe(fs.createWriteStream(tc.filePath));
         }
-        ElMessage.success("覆盖成功！");
-      } catch (error) {
+        ElMessage.success('覆盖成功！');
+      } catch (error: any) {
         ElMessage.error(error);
       }
     }
 
     function handleCopys(list: Tinypng.List[]) {
-      utools.copyFile(list.map((it) => it.tc.downloadPath)) ? ElMessage.success("复制成功！") : ElMessage.error("复制失败！");
+      utools.copyFile(list.map(it => it.tc.downloadPath)) ? ElMessage.success('复制成功！') : ElMessage.error('复制失败！');
     }
 
     function handleCopyAll() {
-      if (!info.value.complete) return ElMessage("请等待全部压缩完成");
-      utools.copyFile(fs.readdirSync(window.tempPath).map((it) => path.join(window.tempPath, it)))
-        ? ElMessage.success("复制成功！")
-        : ElMessage.error("复制失败！");
+      if (!info.value.complete) return ElMessage('请等待全部压缩完成');
+      utools.copyFile(fs.readdirSync(window.tempPath).map(it => path.join(window.tempPath, it)))
+        ? ElMessage.success('复制成功！')
+        : ElMessage.error('复制失败！');
     }
 
     function handleDrop(e: DragEvent) {

@@ -10,7 +10,7 @@
       <template v-else>-</template>
     </div>
     <div class="item__compress-ratio">{{ surplus ? `-${(((size - surplus) / size) * 100).toFixed(2)}%` : '-' }}</div>
-    <button :disabled="progress !== 1" @click="$emit('copy')" class="item__copy iconfont icon-copy" title="复制图片"></button>
+    <button :disabled="progress !== 1" @click="$emit('copy-image')" class="item__copy iconfont icon-copy" title="复制图片"></button>
     <button :disabled="progress !== 1" @click="$emit('replace')" class="item__replace iconfont icon-icon_common_replace" title="覆盖原图"></button>
     <p class="item__tag">
       <span :key="index" v-for="(it, index) in status">{{ it }}</span>
@@ -24,7 +24,7 @@
   </li>
 </template>
 
-<style lang="stylus">
+<style lang="scss">
 .item {
   display: flex;
   padding: 10px;
@@ -43,7 +43,7 @@
     width: var(--width);
     height: 4px;
     background: #60a7ff;
-    border-radius: @height * 0.5;
+    border-radius: 2px;
     transition: width 0.5s;
   }
 
@@ -85,7 +85,8 @@
     color: #389e0d;
   }
 
-  &__copy, &__replace {
+  &__copy,
+  &__replace {
     font-size: 20px;
     padding: 0 6px;
     background: none;
@@ -135,24 +136,25 @@
 </style>
 
 <script lang="ts">
-import { defineComponent, computed, watch } from "vue";
+import { defineComponent, computed } from 'vue';
 
 export default defineComponent({
   props: {
-    path: { type: String, default: "" },
-    name: { type: String, default: "" },
+    path: { type: String, default: '' },
+    name: { type: String, default: '' },
     surplus: { type: Number, default: 0 },
     size: { type: Number, default: 0 },
     progress: { type: Number, default: 0 },
-    error: { type: String, default: "" }
+    error: { type: String, default: '' }
   },
+  emits: ['copy-image', 'replace', 'retry'],
 
   setup(props) {
     const dice: Array<[number, string[]]> = [
-      [1, ["上传完成", "压缩完成", "下载图片完成"]],
-      [0.66, ["上传完成", "压缩完成", "下载图片中"]],
-      [0.33, ["上传完成", "压缩中"]],
-      [0, ["上传中"]]
+      [1, ['上传完成', '压缩完成', '下载图片完成']],
+      [0.66, ['上传完成', '压缩完成', '下载图片中']],
+      [0.33, ['上传完成', '压缩中']],
+      [0, ['上传中']]
     ];
     const status = computed(() => dice.find(([p]) => props.progress >= p)?.[1] ?? []);
     return { ...window.utils, status };

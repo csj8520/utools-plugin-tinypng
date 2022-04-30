@@ -1,19 +1,24 @@
-# utools 插件
+# utools 插件 `tinypng压缩图片`
 
 > 利用 [https://tinypng.com/](https://tinypng.com/) web api 压缩图片 支持 png | jpg | webp
 
 ## 如何使用
 
-下载 [utools](https://u.tools/) 搜索插件 tinypng 压缩图片
+下载 [utools](https://u.tools/) 搜索插件 `tinypng压缩图片`
 
 ![screenshot](https://raw.githubusercontent.com/csj8520/utools-plugin-tinypng/master/doc/screenshot.png)
 ![screenshot](https://raw.githubusercontent.com/csj8520/utools-plugin-tinypng/master/doc/screenshot2.png)
 
 ## 版本记录
 
+### 1.1.5
+
+- 支持深色模式
+- 暂时屏蔽报错 `Error: read ECONNRESET`
+
 ### 1.1.4
 
-- ✨ support webp
+- 支持 webp
 
 ### 1.1.3
 

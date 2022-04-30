@@ -73,7 +73,8 @@ export class TinypngCompress extends Events {
 
     req.on('drain', () => this.emit('progress:upload', send / fileInfo.size));
     req.on('finish', () => (this.emit('progress:upload', 1), this.emit('progress:compress', 0)));
-    req.on('error', err => this.emit('error:upload', err));
+    // TODO: fix 偶发性报错不影响后续操作 Error: read ECONNRESET
+    // req.on('error', err => this.emit('error:upload', err));
 
     const rs = fs.createReadStream(this.filePath);
     rs.on('data', chunk => (send += chunk.length));
@@ -124,7 +125,8 @@ export class TinypngCompress extends Events {
       res.on('error', err => this.emit('error:download', err));
     });
     this.req = req;
-    req.on('error', err => this.emit('error:download', err));
+    // TODO: fix 偶发性报错不影响后续操作 Error: read ECONNRESET
+    // req.on('error', err => this.emit('error:download', err));
     req.end();
   }
 
