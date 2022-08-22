@@ -133,6 +133,12 @@
     }
   }
 }
+
+@media (prefers-color-scheme: dark) {
+  .item:nth-child(2n) {
+    background: #292929;
+  }
+}
 </style>
 
 <script lang="ts">
