@@ -1,5 +1,7 @@
 # utools 插件 `tinypng压缩图片`
 
+## ✨ WIP 仿照官方 `图片压缩` 重新实现UI及交互
+
 > 利用 [https://tinypng.com/](https://tinypng.com/) web api 压缩图片 支持 png | jpg | webp
 
 ## 如何使用
