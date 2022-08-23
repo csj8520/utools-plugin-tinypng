@@ -1,27 +1,28 @@
 import { defineConfig } from 'vite';
-import utools from 'vite-plugin-utools';
 import vue from '@vitejs/plugin-vue';
 
+import { createPreloadPlugin, createUpxPlugin } from './scripts/plugin';
+
 export default defineConfig({
+  base: './',
   server: {
     port: 3100
   },
   build: {
-    // minify: false
+    emptyOutDir: false
   },
   plugins: [
     vue(),
-    utools({
-      preload: {
-        path: './src/preload/index.ts',
-        watch: true,
-        name: 'window.preload'
-      },
-      buildUpx: {
-        pluginPath: './plugin.json',
-        outDir: 'upx',
-        outName: '[pluginName]_[version].upx'
-      }
+    createPreloadPlugin({
+      name: 'window.preload',
+      path: 'src/preload/index.ts',
+      outDir: 'dist',
+      outFileName: 'preload.js'
+    }),
+    createUpxPlugin({
+      pluginPath: 'public/plugin.json',
+      outDir: 'upx',
+      outFileName: '[pluginName]-[version].upx'
     })
   ]
 });

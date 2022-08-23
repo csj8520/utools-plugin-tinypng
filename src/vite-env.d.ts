@@ -7,5 +7,5 @@ declare module '*.vue' {
 }
 
 declare interface Window {
-  preload: typeof import('./preload/index');
+  preload?: typeof import('./preload/index');
 }

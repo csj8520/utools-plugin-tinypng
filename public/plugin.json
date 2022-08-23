@@ -6,8 +6,11 @@
   "homepage": "https://github.com/csj8520/utools-plugin-tinypng",
   "version": "2.0.0",
   "logo": "logo.png",
+  "main": "index.html",
+  "preload": "preload.js",
   "development": {
-    "main": "http://127.0.0.1:3100"
+    "main": "http://127.0.0.1:3100",
+    "preload": "preload.js"
   },
   "features": [
     {
