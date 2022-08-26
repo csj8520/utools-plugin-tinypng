@@ -1,47 +1,62 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { find, imageReg, excludeDirReg } from './utils';
 
-import { random, bytes } from './utils';
-
-export * from './tinypng';
-
-export { random, bytes };
-
-export function test() {
-  console.log('test success');
-}
-
-export const aa = 123;
-export let bb = 123;
-export var cc = 123;
+// export * from './tinypng';
+export * from './utils';
 
 const tempPath = path.join(utools.getPath('temp'), 'utools.tinypng');
-const nativeId = utools.getNativeId();
 
-const dbKey = `config-${nativeId}`;
+interface FilePayload {
+  isDirectory: boolean;
+  isFile: boolean;
+  name: string;
+  path: string;
+}
+
+// const configs: TinypngConfig = { list: [] };
 
 utools.onPluginEnter(async ({ code, type, payload }) => {
-  utools.db.get(dbKey);
   console.log('tempPath: ', tempPath);
   const stat = await fs.stat(tempPath).catch(() => null);
   if (!stat?.isDirectory()) await fs.mkdir(tempPath, { recursive: true });
 
-  console.log('用户进入插件111', code, type, payload);
+  console.log('用户进入插件', code, type, payload);
 
-  // let files: Tinypng.FIleItem[] = [];
-  // if (type === 'files') {
-  //   files = (payload as any[]).map(it => ({
-  //     name: it.name,
-  //     path: it.path,
-  //     size: fs.statSync(it.path).size
-  //   }));
-  // } else if (type === 'window') {
-  //   const path = await utools.readCurrentFolderPath();
-  //   console.log('path: ', path);
-  //   if (!path) return;
-  //   files = [{ name: '', path, size: 0 }];
-  // }
+  const config: TinypngConfig.List = { date: Date.now(), basedir: '', images: [] };
+
+  const paths: string[] = [];
+
+  if (type === 'files') {
+    config.basedir = path.dirname((payload as FilePayload[])[0].path);
+    for (const it of payload as Array<FilePayload>) {
+      paths.push(...(await find(it.path, imageReg, excludeDirReg)));
+    }
+  } else if (type === 'window') {
+    const basedir = await utools.readCurrentFolderPath();
+    if (!basedir) return;
+    config.basedir = basedir;
+    paths.push(...(await find(basedir, imageReg, excludeDirReg)));
+  }
+  if (paths.length === 0) return;
+  for (const it of paths) {
+    config.images.push({
+      name: it.replace(config.basedir, '').replace(path.sep, ''),
+      path: it,
+      size: (await fs.stat(it)).size
+    });
+  }
+
+  window.dispatchEvent(new CustomEvent('tinyping-compression', { detail: config }));
 });
-export default function () {
-  console.log('test default success 2');
-}
+
+utools.onPluginOut(async exit => {
+  if (!exit) return;
+  // 插件退出后清理缓存
+  const dir = await fs.readdir(tempPath);
+  for (const name of dir) {
+    const file = path.join(tempPath, name);
+    const stat = await fs.stat(file);
+    stat.isFile() ? await fs.unlink(file) : await fs.rmdir(file, { recursive: true });
+  }
+});

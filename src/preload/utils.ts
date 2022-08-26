@@ -36,14 +36,6 @@ export const delay = (t: number) => new Promise(r => setTimeout(r, t));
 //   await a.finish();
 // })();
 
-export function bytes(bytes: number) {
-  if (bytes === 0) return '0B';
-  let k = 1024;
-  let sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-  let i = Math.floor(Math.log(bytes) / Math.log(k));
-  return (bytes / Math.pow(k, i)).toFixed(2) + sizes[i];
-}
-
 export function random(x: number, y: number): number;
 export function random(str: string, length: number, repeat?: boolean): string;
 export function random(str: string): string;
@@ -76,20 +68,23 @@ export function random(x: any, y?: any, repeat = true) {
 }
 
 export async function find(rootPath: string, include: RegExp, exclude?: RegExp): Promise<string[]> {
-  if (exclude && exclude.test(rootPath)) return [];
   const root = await fs.stat(rootPath).catch(() => null);
   if (!root) return [];
   if (root.isDirectory()) {
     const files: string[] = [];
     const dirFiles = await fs.readdir(rootPath);
     for (let it of dirFiles) {
+      if (exclude && exclude.test(it)) continue;
       const childrens = await find(path.join(rootPath, it), include, exclude);
       files.push(...childrens);
     }
     return files;
   } else if (root.isFile()) {
-    return include.test(rootPath) ? [rootPath] : [];
+    return include.test(path.basename(rootPath)) ? [rootPath] : [];
   } else {
     return [];
   }
 }
+
+export const imageReg = /\.(png|jpeg|jpg|webp)$/i;
+export const excludeDirReg = /^(\.|node_modules)/i;

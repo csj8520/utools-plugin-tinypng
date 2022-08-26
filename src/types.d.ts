@@ -1,11 +1,12 @@
-interface DBCconfig {
-  list: DBCconfig.List[];
+interface TinypngConfig {
+  list: TinypngConfig.List[];
 }
 
-declare namespace DBCconfig {
+declare namespace TinypngConfig {
   export interface List {
     /** 时间戳 */
     date: number;
+    basedir: string;
     images: List.Image[];
   }
 
@@ -14,9 +15,15 @@ declare namespace DBCconfig {
       name: string;
       path: string;
       size: number;
-      compressed: {
+      compress?: {
         path: string;
-        size: number;
+        size?: number;
+        /** 压缩进度 0 - 1 */
+        progress: number;
+        /** 已取消 */
+        canceled?: boolean;
+        error?: boolean;
+        msg?: string;
       };
     }
   }
