@@ -1,12 +1,31 @@
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn.js';
+import { createApp } from 'vue';
+import { ElNotification } from 'element-plus';
+
+import 'element-plus/theme-chalk/el-overlay.css';
+import 'element-plus/theme-chalk/dark/css-vars.css';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
-import { createApp } from 'vue';
 import './style.css';
 import App from './App.vue';
+import './assets/iconfont.js';
 
 dayjs.extend(relativeTime);
 dayjs.locale('zh-cn');
 
-createApp(App).mount('#app');
+function handleError(error: any) {
+  console.error('error: ', error);
+  ElNotification({
+    title: 'Error',
+    message: String(error),
+    type: 'error'
+  });
+}
+
+const app = createApp(App);
+
+app.config.errorHandler = handleError;
+window.addEventListener('error', handleError);
+
+app.mount('#app');

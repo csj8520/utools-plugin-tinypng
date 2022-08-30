@@ -12,7 +12,7 @@
     "esModuleInterop": true,
     "lib": ["ESNext", "DOM"],
     "skipLibCheck": true,
-    "types": ["utools-api-types", "@types/node"]
+    "types": ["utools-api-types", "@types/node", "element-plus/global"]
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "scripts/plugin.ts"]
 }

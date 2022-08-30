@@ -8,10 +8,17 @@
 
 下载 [utools](https://u.tools/) 搜索插件 `tinypng压缩图片`
 
-![screenshot](https://raw.githubusercontent.com/csj8520/utools-plugin-tinypng/master/doc/screenshot.png)
-![screenshot](https://raw.githubusercontent.com/csj8520/utools-plugin-tinypng/master/doc/screenshot2.png)
+![screenshot](./doc/screenshot.png)
+![screenshot](./doc/screenshot2.png)
 
 ## 版本记录
+
+
+### 2.0.0
+- 仿照 `utools` 官方插件 `图片压缩` 重新实现UI及交互
+- 支持取消
+- 保留历史记录（退出插件后清除）
+- 重新实现项目打包以及开发流程
 
 ### 1.1.5
 

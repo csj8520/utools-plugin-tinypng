@@ -12,17 +12,24 @@ body,
   margin: 0;
 }
 
-:root {
-  --color-text: #213547;
-  --color-bg: #fff;
+button {
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+button:disabled {
+  cursor: no-drop;
+}
+p {
+  margin: 0;
+}
 
-  color: var(--color-text);
+html {
+  --color-bg: #fff;
   background-color: var(--color-bg);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-text: #ffffff;
-    --color-bg: #303133;
-  }
+html.dark {
+  --color-bg: #303133;
 }

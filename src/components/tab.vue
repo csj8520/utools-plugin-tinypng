@@ -16,8 +16,8 @@
   position: relative;
   width: 100%;
   height: 50px;
-  background: #212121;
-  color: #b9b9b9;
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-primary);
   overflow-x: auto;
   overflow-y: hidden;
   white-space: nowrap;
