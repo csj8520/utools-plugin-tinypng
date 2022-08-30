@@ -26,7 +26,7 @@ export default defineConfig({
     createUpxPlugin({
       pluginPath: 'public/plugin.json',
       outDir: 'upx',
-      outFileName: '[pluginName]-[version].upx'
+      outFileName: 'tinypng-[version].upx'
     })
   ]
 });
