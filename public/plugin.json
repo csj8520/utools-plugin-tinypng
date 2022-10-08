@@ -1,4 +1,5 @@
 {
+  "$schema": "../node_modules/vite-plugin-utools-helper/dist/schema.json",
   "name": "a672f164",
   "pluginName": "tinypng压缩图片",
   "description": "使用tinypng压缩图片",
