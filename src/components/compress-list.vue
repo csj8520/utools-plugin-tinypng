@@ -149,7 +149,7 @@ async function compressOne(idx: number) {
       cancelTokens[idx] = axios.CancelToken.source();
       const { data } = await axios
         .post<TinypngApi.Upload.Response>('/web/shrink', buf, {
-          baseURL: random(['https://tinypng.com', 'https://tinyjpg.com']),
+          baseURL: random(['https://tinypng.com', 'https://tinyjpg.com', 'https://tinify.cn']),
           headers: { 'content-type': 'image/png', 'X-Forwarded-For': fakeIp },
           cancelToken: cancelTokens[idx].token,
           onUploadProgress: e => updateItem(idx, { compress: { progress: (e.total ? e.loaded / e.total : 0) * 0.33 } }),
