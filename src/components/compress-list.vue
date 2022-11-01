@@ -152,8 +152,8 @@ async function compressOne(idx: number) {
           baseURL: random(['https://tinypng.com', 'https://tinyjpg.com']),
           headers: { 'content-type': 'image/png', 'X-Forwarded-For': fakeIp },
           cancelToken: cancelTokens[idx].token,
-          onUploadProgress: e => updateItem(idx, { compress: { progress: (e.loaded / e.total) * 0.33 } }),
-          onDownloadProgress: e => updateItem(idx, { compress: { progress: (e.loaded / e.total) * 0.33 + 0.34 } })
+          onUploadProgress: e => updateItem(idx, { compress: { progress: (e.total ? e.loaded / e.total : 0) * 0.33 } }),
+          onDownloadProgress: e => updateItem(idx, { compress: { progress: (e.total ? e.loaded / e.total : 0) * 0.33 + 0.34 } })
         })
         .catch(cacheError.bind(void 0, idx));
       if (!data) return;
@@ -165,7 +165,7 @@ async function compressOne(idx: number) {
       .get<ArrayBuffer>(props.modelValue.images[idx].compress.downloadUrl!, {
         responseType: 'arraybuffer',
         cancelToken: cancelTokens[idx].token,
-        onDownloadProgress: e => updateItem(idx, { compress: { progress: (e.loaded / e.total) * 0.32 + 0.67 } })
+        onDownloadProgress: e => updateItem(idx, { compress: { progress: (e.total ? e.loaded / e.total : 0) * 0.32 + 0.67 } })
       })
       .catch(cacheError.bind(void 0, idx));
     if (!compressed) return;
