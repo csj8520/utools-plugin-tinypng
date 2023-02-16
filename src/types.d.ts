@@ -14,7 +14,6 @@ declare namespace TinypngConfig {
   export interface List {
     /** 时间戳 */
     date: number;
-    basedir: string;
     tempdir: string;
     images: List.Image[];
   }

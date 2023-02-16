@@ -5,12 +5,12 @@
   "description": "使用tinypng压缩图片",
   "author": "https://github.com/csj8520",
   "homepage": "https://github.com/csj8520/utools-plugin-tinypng",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "logo": "logo.png",
   "main": "index.html",
   "preload": "preload.js",
   "development": {
-    "main": "http://127.0.0.1:3100",
+    "main": "http://localhost:3100",
     "preload": "preload.js"
   },
   "features": [

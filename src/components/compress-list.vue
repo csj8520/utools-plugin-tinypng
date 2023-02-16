@@ -143,9 +143,7 @@ async function compressOne(idx: number) {
     if (!(it.compress.progress >= 0.67 && it.compress.downloadUrl)) {
       await updateItem(idx, { compress: { progress: 0 } });
       const buf = await window.preload.readFile(it.path);
-      const fakeIp = Array.from({ length: 4 })
-        .map(() => random(0, 255))
-        .join('.');
+      const fakeIp = Array.from({ length: 4 }, () => random(0, 255)).join('.');
       cancelTokens[idx] = axios.CancelToken.source();
       const { data } = await axios
         .post<TinypngApi.Upload.Response>('/web/shrink', buf, {

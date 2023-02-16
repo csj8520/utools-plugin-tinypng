@@ -7,49 +7,64 @@ import { find, imageReg, excludeDirReg } from './utils';
 const tempPath = path.join(utools.getPath('temp'), 'utools.tinypng');
 
 export async function handlePluginEnter({ code, type, payload }: Parameters<Parameters<typeof utools.onPluginEnter>[0]>[0]) {
-  console.log('tempPath: ', tempPath);
-  console.log('code, type, payload: ', code, type, payload);
+  try {
+    console.log('tempPath: ', tempPath);
+    console.log('code, type, payload: ', code, type, payload);
 
-  const stat = await fs.stat(tempPath).catch(() => null);
-  if (!stat?.isDirectory()) await fs.mkdir(tempPath, { recursive: true });
+    const stat = await fs.stat(tempPath).catch(() => null);
+    if (!stat?.isDirectory()) await fs.mkdir(tempPath, { recursive: true });
 
-  const date = Date.now();
-  const config: TinypngConfig.List = {
-    date,
-    basedir: '',
-    images: [],
-    tempdir: path.join(tempPath, String(date))
-  };
+    const date = Date.now();
+    const config: TinypngConfig.List = {
+      date,
+      images: [],
+      tempdir: path.join(tempPath, String(date))
+    };
 
-  const paths: string[] = [];
-
-  if (['files', 'drop'].includes(type)) {
-    type Payload = FilePayload | DropPaylod;
-    const _payload = (payload as Payload[]).filter(it => it.path);
-    if (_payload.length === 0) return;
-    config.basedir = path.dirname(_payload[0].path);
-    for (const it of _payload) {
-      paths.push(...(await find(it.path, imageReg, excludeDirReg)));
+    const paths: string[] = [];
+    if (['files', 'drop'].includes(type)) {
+      type Payload = FilePayload | DropPaylod;
+      paths.push(...(payload as Payload[]).filter(it => it.path).map(it => it.path));
+    } else if (type === 'window') {
+      const curentDir = await utools.readCurrentFolderPath().catch(() => null);
+      if (curentDir) paths.push(curentDir);
     }
-  } else if (type === 'window') {
-    const basedir = await utools.readCurrentFolderPath();
-    if (!basedir) return;
-    config.basedir = basedir;
-    paths.push(...(await find(basedir, imageReg, excludeDirReg)));
-  }
-  if (paths.length === 0) return;
 
-  for (const it of paths) {
-    const name = it.replace(config.basedir, '').replace(path.sep, '');
-    config.images.push({
-      name,
-      path: it,
-      size: (await fs.stat(it)).size,
-      compress: { path: path.join(config.tempdir, name), progress: 0 }
-    });
-  }
+    if (paths.length === 0) return;
 
-  window.dispatchEvent(new CustomEvent('tinyping-compression', { detail: config }));
+    for (const it of paths) {
+      const fileType = await fs.stat(it).catch(() => null);
+      const images: string[] = [];
+      let basedir: string = '';
+
+      if (fileType?.isFile()) {
+        images.push(it);
+        basedir = path.dirname(it);
+      } else if (fileType?.isDirectory()) {
+        basedir = path.dirname(it);
+        images.push(...(await find(it, imageReg, excludeDirReg)));
+      }
+
+      for (const img of images) {
+        const name = img.replace(basedir, '').replace(path.sep, '');
+        const nameExist = config.images.some(it => it.name === name);
+        if (nameExist) {
+          utools.showNotification(`此文件名已被占用：“${name}” 跳过处理`);
+          continue;
+        }
+        config.images.push({
+          name,
+          path: img,
+          size: (await fs.stat(img)).size,
+          compress: { path: path.join(config.tempdir, name), progress: 0 }
+        });
+      }
+    }
+
+    window.dispatchEvent(new CustomEvent('tinyping-compression', { detail: config }));
+  } catch (error) {
+    utools.showNotification(String(error));
+  }
 }
 
 utools.onPluginEnter(handlePluginEnter);
