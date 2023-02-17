@@ -30,14 +30,14 @@ export async function handlePluginEnter({ code, type, payload }: Parameters<Para
       if (curentDir) paths.push(curentDir);
     }
 
-    if (paths.length === 0) return;
-
     for (const it of paths) {
+      if (excludeDirReg.test(it)) continue;
       const fileType = await fs.stat(it).catch(() => null);
       const images: string[] = [];
       let basedir: string = '';
 
       if (fileType?.isFile()) {
+        if (!imageReg.test(it)) continue;
         images.push(it);
         basedir = path.dirname(it);
       } else if (fileType?.isDirectory()) {
@@ -60,6 +60,7 @@ export async function handlePluginEnter({ code, type, payload }: Parameters<Para
         });
       }
     }
+    if (config.images.length === 0) return;
 
     window.dispatchEvent(new CustomEvent('tinyping-compression', { detail: config }));
   } catch (error) {
