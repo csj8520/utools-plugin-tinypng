@@ -1,6 +1,6 @@
 # utools 插件 `tinypng压缩图片`
 
-## 仿照官方 `图片压缩` 重新实现UI及交互
+## 仿照官方 `图片压缩` 重新实现 UI 及交互
 
 > 利用 [https://tinypng.com/](https://tinypng.com/) web api 压缩图片 支持 png | jpg | webp
 
@@ -13,9 +13,11 @@
 
 ## 版本记录
 
+[See Releases](https://github.com/csj8520/utools-plugin-tinypng/releases)
 
 ### 2.0.0
-- 仿照 `utools` 官方插件 `图片压缩` 重新实现UI及交互
+
+- 仿照 `utools` 官方插件 `图片压缩` 重新实现 UI 及交互
 - 支持取消
 - 保留历史记录（退出插件后清除）
 - 重新实现项目打包以及开发流程

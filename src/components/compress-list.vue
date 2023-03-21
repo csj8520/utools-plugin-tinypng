@@ -146,7 +146,7 @@ async function compressOne(idx: number) {
       const fakeIp = Array.from({ length: 4 }, () => random(0, 255)).join('.');
       cancelTokens[idx] = axios.CancelToken.source();
       const { data } = await axios
-        .post<TinypngApi.Upload.Response>('/web/shrink', buf, {
+        .post<TinypngApi.Upload.Response>('/backend/opt/shrink', buf, {
           baseURL: random(['https://tinypng.com', 'https://tinyjpg.com', 'https://tinify.cn']),
           headers: { 'content-type': 'image/png', 'X-Forwarded-For': fakeIp },
           cancelToken: cancelTokens[idx].token,
